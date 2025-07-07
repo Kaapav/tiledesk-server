@@ -9,17 +9,16 @@ const PORT = process.env.PORT || 3000;
 
 console.log("🧪 Starting Kaapav WhatsApp Worker");
 
-// ✅ Redis Connection — Jugaad Mode (FORCE Non-SSL)
-const redis = new Redis({
-  host: 'redis-15081.c93.us-east-1-3.ec2.redns.redis-cloud.com',
-  port: 15081,
-  username: 'default',
-  password: 'Kaapav@123!',
-  // ❌ No tls: {} added — pure TCP
-});
+// ✅ Redis Connection — Upstash with TLS
+if (!process.env.REDIS_URI) {
+  console.error("❌ REDIS_URI is missing");
+  process.exit(1);
+}
+
+const redis = new Redis(process.env.REDIS_URI); // rediss:// works automatically
 
 redis.on('connect', () => {
-  console.log("✅ Redis Connected (Plain TCP)");
+  console.log("✅ Redis Connected (Upstash TLS)");
 });
 redis.on('error', err => {
   console.error("❌ Redis Error:", err.message);
