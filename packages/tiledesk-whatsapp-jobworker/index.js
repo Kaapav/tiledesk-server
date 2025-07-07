@@ -1,3 +1,13 @@
+const redis = require('redis');
+
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URI || 'rediss://default:Kaapav%40123%21@redis-15081.c93.us-east-1-3.ec2.redns.redis-cloud.com:15081'
+});
+
+redisClient.connect()
+  .then(() => console.log("✅ Redis Connected"))
+  .catch((err) => console.error("❌ Redis Connection Failed", err));
+
 const Redis = require('ioredis');
 
 // 🧠 Use secure Redis Cloud URI (from .env)
