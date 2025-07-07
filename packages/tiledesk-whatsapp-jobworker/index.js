@@ -1,40 +1,43 @@
 const mongoose = require('mongoose');
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 20000  // wait up to 20 seconds
-});
-  
-  .then(() => console.log("✅ WhatsApp Worker MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Connection Error:", err));
-
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Webhook Verification Route
+// 🛡️ MongoDB Connection (Error-proofed)
+(async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 20000
+    });
+    console.log("✅ WhatsApp Worker MongoDB Connected");
+  } catch (err) {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    process.exit(1); // exit if DB fails
+  }
+})();
+
+// ✅ Webhook Verification Route
 app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   const verify_token = process.env.VERIFY_TOKEN || 'kaapavverify';
-
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
   if (mode === 'subscribe' && token === verify_token) {
-    console.log('WEBHOOK_VERIFIED');
-    res.status(200).send(challenge);
+    console.log('✅ WEBHOOK_VERIFIED');
+    return res.status(200).send(challenge);
   } else {
-    console.error('WEBHOOK_VERIFICATION_FAILED');
-    res.sendStatus(403);
+    console.error('❌ WEBHOOK_VERIFICATION_FAILED');
+    return res.sendStatus(403);
   }
 });
 
+// ✅ Incoming WhatsApp Message Route
 app.use(express.json());
-
-// Optional: Your POST route for incoming WhatsApp messages
 app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
-  console.log('📩 Incoming message:', JSON.stringify(req.body, null, 2));
+  console.log('📩 Incoming WhatsApp message:', JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
