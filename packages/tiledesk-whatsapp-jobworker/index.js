@@ -1,37 +1,21 @@
-const redis = require('redis');
-
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URI || 'rediss://default:Kaapav%40123%21@redis-15081.c93.us-east-1-3.ec2.redns.redis-cloud.com:15081'
-});
-
-redisClient.connect()
-  .then(() => console.log("✅ Redis Connected"))
-  .catch((err) => console.error("❌ Redis Connection Failed", err));
+require('dotenv').config(); // ✅ Always load .env first
 
 const Redis = require('ioredis');
-
-// 🧠 Use secure Redis Cloud URI (from .env)
-if (!process.env.REDIS_URI) {
-  throw new Error("❌ REDIS_URI is missing");
-}
-
-const redis = new Redis(process.env.REDIS_URI);
-console.log("🧪 Redis URI:", process.env.REDIS_URI);
-
-// Optional: Confirm Redis Connection
-redis.on('connect', () => {
-  console.log('✅ Connected to Redis Cloud');
-});
-redis.on('error', (err) => {
-  console.error('❌ Redis Error:', err);
-});
-
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🛡️ MongoDB Connection (Error-proofed)
+// ✅ Redis Setup with Cloud URI
+if (!process.env.REDIS_URI) {
+  throw new Error("❌ REDIS_URI is missing");
+}
+
+const redis = new Redis(process.env.REDIS_URI);
+redis.on('connect', () => console.log('✅ Connected to Redis Cloud'));
+redis.on('error', (err) => console.error('❌ Redis Error:', err));
+
+// ✅ MongoDB Connection (Error-handled)
 (async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -42,11 +26,11 @@ const PORT = process.env.PORT || 3000;
     console.log("✅ WhatsApp Worker MongoDB Connected");
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
-    process.exit(1); // exit if DB fails
+    process.exit(1); // Exit on failure
   }
 })();
 
-// ✅ Webhook Verification Route
+// ✅ Webhook Verification (GET)
 app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   const verify_token = process.env.VERIFY_TOKEN || 'kaapavverify';
   const mode = req.query['hub.mode'];
@@ -62,13 +46,14 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   }
 });
 
-// ✅ Incoming WhatsApp Message Route
+// ✅ WhatsApp Message Receiver (POST)
 app.use(express.json());
 app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
   console.log('📩 Incoming WhatsApp message:', JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
+// ✅ Start Server
 app.listen(PORT, () => {
   console.log(`🚀 WhatsApp bot running on port ${PORT}`);
 });
