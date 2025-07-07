@@ -1,0 +1,71 @@
+{
+  "name": "Tiledesk Server",
+  "description": "Tildesk server",
+  "repository": "https://github.com/Tiledesk/tiledesk-server/new/master",
+  "logo": "https://tiledesk.com/tiledesk-logo.png",
+  "keywords": ["node", "express", "tiledesk", "live chat"],
+  "env": {
+    "FIREBASE_APIKEY": {
+      "description": "Firebase API key.",
+      "value": ""
+    },
+    "FIREBASE_AUTHDOMAIN": {
+      "description": "Firebase Auth domain.",
+      "value": ""
+    },
+    "FIREBASE_DATABASEURL": {
+      "description": "Firebase database url.",
+      "value": ""
+    },
+    "FIREBASE_STORAGEBUCKET": {
+      "description": "Firebase storage bucket.",
+      "value": ""
+    },
+    "FIREBASE_MESSAGINGSENDERID": {
+      "description": "Firebase messaging sender id.",
+      "value": ""
+    },    
+     "FIREBASE_CLIENT_EMAIL": {
+      "description": "Firebase Client email.",
+      "value": ""
+    },
+     "FIREBASE_PRIVATE_KEY": {
+      "description": "Firebase private key.",
+      "value": ""
+    },
+     "FIREBASE_PROJECT_ID": {
+      "description": "Firebase project id.",
+      "value": ""
+    },
+    "CHAT21_ENABLED": {
+      "description": "Enable or disable Chat21 module.",
+      "value": "true"
+    },
+    "CHAT21_URL": {
+      "description": "The Chat21 server endpoint.",
+      "value": "https://us-central1-tiledesk-test.cloudfunctions.net"
+    },
+    "CHAT21_APPID": {
+      "description": "A unique identifier for your chat21 app.",
+      "value": "myAppId"
+    },
+    "WIDGET_LOCATION": {
+      "description": "Your widget url endpoint",
+      "value": "http://localhost:4200/"
+    },
+    "CHAT21_ADMIN_TOKEN": {
+      "description": "The Chat21 admin token.",
+      "value": "youradmintoken"
+    },
+    "SUPER_PASSWORD": {
+      "description": "Super admin password",
+      "value": "superpassword"
+    },
+    "MONGOOSE_AUTOINDEX": {
+      "description": "Autoindex",
+      "value": true
+    }
+  },
+  "image": "heroku/nodejs",
+  "addons": ["mongolab"]
+}
