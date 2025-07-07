@@ -1,3 +1,12 @@
+const redisUrl = new URL(process.env.REDIS_URI);
+const redis = new Redis({
+  port: redisUrl.port,
+  host: redisUrl.hostname,
+  username: redisUrl.username,
+  password: redisUrl.password,
+  tls: {}  // ✅ Force TLS for rediss://
+});
+
 // ✅ Load .env first
 require('dotenv').config();
 
