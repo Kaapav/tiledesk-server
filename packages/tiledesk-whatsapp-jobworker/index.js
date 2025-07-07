@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 console.log("🧪 Starting Kaapav WhatsApp Worker");
 
-// ✅ Redis Connection (Non-SSL for Redis Cloud Free)
+// ✅ Redis Connection (Non-SSL for Redis Cloud Free Tier)
 if (!process.env.REDIS_URI) {
   console.error("❌ REDIS_URI is missing");
   process.exit(1);
@@ -44,7 +44,7 @@ redis.on('error', err => {
   }
 })();
 
-// ✅ Webhook Verification (GET)
+// ✅ Webhook Verification (GET) — for Meta
 app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'kaapavverify';
   const mode = req.query['hub.mode'];
@@ -69,7 +69,7 @@ app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
   res.sendStatus(200);
 });
 
-// ✅ Start the Express server
+// ✅ Start Express Server
 app.listen(PORT, () => {
   console.log(`🚀 WhatsApp Worker Live on port ${PORT}`);
 });
