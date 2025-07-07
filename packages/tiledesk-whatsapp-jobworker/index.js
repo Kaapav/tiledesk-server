@@ -1,17 +1,29 @@
-const { URL } = require('url');
-const redisUrl = new URL(process.env.REDIS_URI || '');
+// ✅ Load .env first
+require('dotenv').config();
 
-if (!redisUrl.hostname) {
-  console.error("❌ REDIS_URI is invalid or missing");
+const { URL } = require('url');
+const Redis = require('ioredis');
+const mongoose = require('mongoose');
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+console.log("🧪 Starting Kaapav WhatsApp Worker");
+
+// ✅ Cloud Redis Setup (Single Init - TLS Secured)
+if (!process.env.REDIS_URI) {
+  console.error("❌ REDIS_URI is missing");
   process.exit(1);
 }
+
+const redisUrl = new URL(process.env.REDIS_URI);
 
 const redis = new Redis({
   port: redisUrl.port,
   host: redisUrl.hostname,
   username: redisUrl.username,
   password: redisUrl.password,
-  tls: {} // Force SSL for rediss:// connections
+  tls: {} // ✅ Enforce TLS for rediss://
 });
 
 redis.on('connect', () => {
@@ -21,38 +33,11 @@ redis.on('error', err => {
   console.error("❌ Redis Connection Failed:", err.message);
 });
 
-
-// ✅ Load .env first
-require('dotenv').config();
-
-const Redis = require('ioredis');
-const mongoose = require('mongoose');
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-console.log("🧪 Starting Kaapav WhatsApp Worker");
-
-// ✅ Cloud Redis Check
-if (!process.env.REDIS_URI) {
-  console.error("❌ REDIS_URI missing");
-  process.exit(1);
-}
-
-const redis = new Redis(process.env.REDIS_URI);
-
-redis.on('connect', () => {
-  console.log("✅ Redis Connected to:", process.env.REDIS_URI);
-});
-redis.on('error', err => {
-  console.error("❌ Redis Connection Failed:", err.message);
-});
-
-// ✅ MongoDB Connect
+// ✅ MongoDB Connection (Error-handled)
 (async () => {
   try {
     if (!process.env.MONGO_URI) {
-      throw new Error("Missing MONGO_URI");
+      throw new Error("❌ MONGO_URI is missing");
     }
 
     await mongoose.connect(process.env.MONGO_URI, {
@@ -83,7 +68,7 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   }
 });
 
-// ✅ Incoming WhatsApp Message Receiver
+// ✅ Incoming WhatsApp Message Receiver (POST)
 app.use(express.json());
 
 app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
