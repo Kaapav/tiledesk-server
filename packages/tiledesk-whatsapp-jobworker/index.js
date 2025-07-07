@@ -1,7 +1,6 @@
-// ✅ Load .env first
+// ✅ Load environment variables first
 require('dotenv').config();
 
-const { URL } = require('url');
 const Redis = require('ioredis');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -10,30 +9,22 @@ const PORT = process.env.PORT || 3000;
 
 console.log("🧪 Starting Kaapav WhatsApp Worker");
 
-// ✅ Cloud Redis Setup (Single Init - TLS Secured)
+// ✅ Redis Connection (Non-SSL for Redis Cloud Free)
 if (!process.env.REDIS_URI) {
   console.error("❌ REDIS_URI is missing");
   process.exit(1);
 }
 
-const redisUrl = new URL(process.env.REDIS_URI);
-
-const redis = new Redis({
-  port: redisUrl.port,
-  host: redisUrl.hostname,
-  username: redisUrl.username,
-  password: redisUrl.password,
-  tls: {} // ✅ Enforce TLS for rediss://
-});
+const redis = new Redis(process.env.REDIS_URI);
 
 redis.on('connect', () => {
-  console.log("✅ Redis Connected to:", redisUrl.hostname);
+  console.log("✅ Redis Connected:", process.env.REDIS_URI);
 });
 redis.on('error', err => {
-  console.error("❌ Redis Connection Failed:", err.message);
+  console.error("❌ Redis Error:", err.message);
 });
 
-// ✅ MongoDB Connection (Error-handled)
+// ✅ MongoDB Connection (with error handling)
 (async () => {
   try {
     if (!process.env.MONGO_URI) {
@@ -45,6 +36,7 @@ redis.on('error', err => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 20000
     });
+
     console.log("✅ WhatsApp Worker MongoDB Connected");
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
@@ -52,14 +44,14 @@ redis.on('error', err => {
   }
 })();
 
-// ✅ Webhook Verification for Meta (GET)
+// ✅ Webhook Verification (GET)
 app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
-  const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "kaapavverify";
+  const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'kaapavverify';
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
-  if (mode && token === VERIFY_TOKEN) {
+  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log("✅ WEBHOOK_VERIFIED by Meta");
     return res.status(200).send(challenge);
   } else {
@@ -68,7 +60,7 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   }
 });
 
-// ✅ Incoming WhatsApp Message Receiver (POST)
+// ✅ Incoming WhatsApp Message (POST)
 app.use(express.json());
 
 app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
@@ -77,7 +69,7 @@ app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
   res.sendStatus(200);
 });
 
-// ✅ Start Express Server
+// ✅ Start the Express server
 app.listen(PORT, () => {
   console.log(`🚀 WhatsApp Worker Live on port ${PORT}`);
 });
