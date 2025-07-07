@@ -1,3 +1,20 @@
+const Redis = require('ioredis');
+
+// 🧠 Use secure Redis Cloud URI (from .env)
+if (!process.env.REDIS_URI) {
+  throw new Error("❌ REDIS_URI is missing");
+}
+
+const redis = new Redis(process.env.REDIS_URI);
+
+// Optional: Confirm Redis Connection
+redis.on('connect', () => {
+  console.log('✅ Connected to Redis Cloud');
+});
+redis.on('error', (err) => {
+  console.error('❌ Redis Error:', err);
+});
+
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
