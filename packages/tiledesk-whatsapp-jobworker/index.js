@@ -6,6 +6,7 @@ if (!process.env.REDIS_URI) {
 }
 
 const redis = new Redis(process.env.REDIS_URI);
+console.log("🧪 Redis URI:", process.env.REDIS_URI);
 
 // Optional: Confirm Redis Connection
 redis.on('connect', () => {
