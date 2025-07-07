@@ -1,11 +1,26 @@
-const redisUrl = new URL(process.env.REDIS_URI);
+const { URL } = require('url');
+const redisUrl = new URL(process.env.REDIS_URI || '');
+
+if (!redisUrl.hostname) {
+  console.error("❌ REDIS_URI is invalid or missing");
+  process.exit(1);
+}
+
 const redis = new Redis({
   port: redisUrl.port,
   host: redisUrl.hostname,
   username: redisUrl.username,
   password: redisUrl.password,
-  tls: {}  // ✅ Force TLS for rediss://
+  tls: {} // Force SSL for rediss:// connections
 });
+
+redis.on('connect', () => {
+  console.log("✅ Redis Connected to:", redisUrl.hostname);
+});
+redis.on('error', err => {
+  console.error("❌ Redis Connection Failed:", err.message);
+});
+
 
 // ✅ Load .env first
 require('dotenv').config();
