@@ -1,11 +1,13 @@
-process.env.REDIS_URL = "redis://default:AV1FAAIjc...@set-rodent-23877.upstash.io:6379";
-process.env.TILEBOT_REDIS_URI = process.env.REDIS_URL;
-process.env.TD_REDIS_URI = process.env.REDIS_URL;
-
-// 🔐 Force-set Redis URL for safety (if any code uses it)
-process.env.REDIS_URL = process.env.TILEBOT_REDIS_URI || process.env.UPSTASH_REDIS_REST_URL;
-
+// ✅ Load environment variables first
 require('dotenv').config();
+
+// ✅ Force override for Tilebot and Tiledesk Redis
+const upstashRedis = 'redis://default:AV1FAAIjcDFkMGExMzk3YzNiOTU0YTg4OGE4ZDY4NTk5MzJlZmQ5NHAxMA@set-rodent-23877.upstash.io:6379';
+process.env.REDIS_URL = upstashRedis;
+process.env.TD_REDIS_URI = upstashRedis;
+process.env.TILEBOT_REDIS_URI = upstashRedis;
+process.env.TD_REDIS_ENABLED = 'true';
+process.env.TILEBOT_REDIS_ENABLED = 'true';
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -17,7 +19,7 @@ const app = express();
 app.use(bodyParser.json());
 
 let mongoConnected = false;
-console.log("🔍 Redis URL =", process.env.UPSTASH_REDIS_REST_URL);
+console.log("🔍 Redis URL =", upstashRedis);
 
 // ✅ Redis Init
 let redis;
@@ -31,7 +33,7 @@ try {
   console.error("❌ Redis Init Failed:", err.message);
 }
 
-// ✅ Mongo Connection with Retry
+// ✅ MongoDB Retry Connection
 async function connectMongoWithRetry() {
   try {
     if (!process.env.MONGO_URI) throw new Error("❌ MONGO_URI missing");
@@ -78,10 +80,10 @@ async function logToRedisIfNeeded(data) {
   }
 }
 
-// ✅ Health
-app.get('/ping', (req, res) => res.send("OK"));
+// ✅ Health Check
+app.get('/ping', (req, res) => res.status(200).send("pong"));
 
-// ✅ Meta Verify (GET)
+// ✅ Meta Webhook Verification
 app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'kaapavverify';
   const mode = req.query['hub.mode'];
@@ -96,18 +98,15 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   }
 });
 
-// ✅ WhatsApp Webhook (POST)
+// ✅ WhatsApp Webhook Handler
 app.post('/webhooks/whatsapp/cloudapi', async (req, res) => {
-  res.sendStatus(200); // Always fast reply to Meta
-
+  res.sendStatus(200);
   const data = req.body;
-  console.log("📩 Webhook Hit:\n", JSON.stringify(data));
+  console.log("📩 Webhook Hit:", JSON.stringify(data));
 
-  // Mongo + Redis log
   await saveToMongo(data);
   await logToRedisIfNeeded(data);
 
-  // Forward to n8n webhook
   if (process.env.N8N_WEBHOOK_URL) {
     try {
       await axios.post(process.env.N8N_WEBHOOK_URL, data);
