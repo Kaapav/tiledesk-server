@@ -113,3 +113,18 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Kaapav WhatsApp Worker Live on port ${PORT}`);
 });
+
+async function connectMongoWithRetry() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 20000
+    });
+    console.log("✅ MongoDB Connected");
+  } catch (err) {
+    console.error("❌ MongoDB Connect Failed:", err.message);
+    setTimeout(connectMongoWithRetry, 5000); // retry in 5 sec
+  }
+}
+connectMongoWithRetry();
