@@ -40,7 +40,9 @@ async function connectMongoWithRetry() {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 20000
+      serverSelectionTimeoutMS: 30000
+      socketTimeoutMS: 45000,          // added socket timeout
+      autoIndex: false                 // disable auto-index creation on every startup
     });
     mongoConnected = true;
     console.log("✅ MongoDB Connected");
@@ -124,3 +126,18 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Kaapav WhatsApp Worker LIVE on port ${PORT}`);
 });
+async function connectMongoWithRetry() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      autoIndex: false
+    });
+    console.log("✅ Mongo Connected");
+  } catch (err) {
+    console.error("❌ Mongo Connect Error:", err.message);
+    setTimeout(connectMongoWithRetry, 5000);
+  }
+}
