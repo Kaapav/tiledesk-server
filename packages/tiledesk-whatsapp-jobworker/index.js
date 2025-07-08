@@ -1,18 +1,17 @@
-// ✅ Load environment variables
+// ✅ Load environment variables first
 require('dotenv').config();
 
+const { Redis } = require('@upstash/redis');
 const mongoose = require('mongoose');
 const express = require('express');
-const { Redis } = require('@upstash/redis'); // ✅ NEW SDK for Upstash
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 console.log("🧪 Starting Kaapav WhatsApp Worker");
 
-// ✅ Redis Connection — using @upstash/redis SDK
+// ✅ Redis Connection — Using Upstash SDK (HTTPS not rediss)
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-  console.error("❌ Redis ENV variables missing");
+  console.error("❌ Redis URL or Token missing in .env");
   process.exit(1);
 }
 
@@ -21,22 +20,21 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN
 });
 
+// 🔁 Optional Redis test
 (async () => {
   try {
-    await redis.set("kaapav:status", "🔥 Redis Connected Successfully");
-    const status = await redis.get("kaapav:status");
-    console.log("✅ Redis Test Passed:", status);
+    await redis.set("kaapav_test", "success");
+    const res = await redis.get("kaapav_test");
+    console.log("✅ Redis Test Passed: ", res);
   } catch (err) {
-    console.error("❌ Redis Test Failed:", err.message);
+    console.error("❌ Redis Error:", err.message);
   }
 })();
 
 // ✅ MongoDB Connection
 (async () => {
   try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("❌ MONGO_URI is missing");
-    }
+    if (!process.env.MONGO_URI) throw new Error("❌ MONGO_URI is missing");
 
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
@@ -67,7 +65,7 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
   }
 });
 
-// ✅ Incoming WhatsApp Message (POST)
+// ✅ WhatsApp Message Receiver (POST)
 app.use(express.json());
 app.post('/webhooks/whatsapp/cloudapi', (req, res) => {
   console.log("📩 Incoming WhatsApp Message:");
