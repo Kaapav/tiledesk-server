@@ -1,3 +1,7 @@
+process.env.REDIS_URL = "redis://default:AV1FAAIjc...@set-rodent-23877.upstash.io:6379";
+process.env.TILEBOT_REDIS_URI = process.env.REDIS_URL;
+process.env.TD_REDIS_URI = process.env.REDIS_URL;
+
 // 🔐 Force-set Redis URL for safety (if any code uses it)
 process.env.REDIS_URL = process.env.TILEBOT_REDIS_URI || process.env.UPSTASH_REDIS_REST_URL;
 
