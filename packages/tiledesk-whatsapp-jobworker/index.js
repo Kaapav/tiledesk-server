@@ -1,5 +1,7 @@
 // ✅ Load environment variables first
 require('dotenv').config();
+console.log("🔍 UPSTASH_REDIS_REST_URL =", process.env.UPSTASH_REDIS_REST_URL);
+console.log("🔍 UPSTASH_REDIS_REST_TOKEN =", process.env.UPSTASH_REDIS_REST_TOKEN);
 
 const { Redis } = require('@upstash/redis');
 const mongoose = require('mongoose');
