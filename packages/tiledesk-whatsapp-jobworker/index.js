@@ -7,6 +7,41 @@ const { Redis } = require('@upstash/redis');
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+
+app.use(bodyParser.json());
+
+// ✅ Health check route
+app.get('/ping', (req, res) => {
+  res.send("OK");
+});
+
+// ✅ WhatsApp Webhook Route
+app.post('/webhooks/whatsapp/cloudapi', async (req, res) => {
+  try {
+    res.sendStatus(200); // 💥 Respond instantly to Meta (avoids 502)
+
+    const data = req.body;
+    console.log("📩 WhatsApp Webhook Hit:", JSON.stringify(data));
+
+    // 🧠 Optional: Save to MongoDB
+    await saveToMongo(data);
+
+    // 💾 Optional: Log to Redis
+    await logToRedisIfNeeded(data);
+  } catch (error) {
+    console.error("❌ Webhook Error:", error.message);
+  }
+});
+
+// ✅ Start Server on Render port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
 const PORT = process.env.PORT || 3000;
 
 console.log("🧪 Starting Kaapav WhatsApp Worker");
