@@ -1,3 +1,7 @@
+// 👉 At the very top of your server.js or index.js
+const whatsappRouter = require('./whatsapp'); // or wherever the Express logic is
+app.use('/custom/webhooks', whatsappRouter);
+
 // ✅ Load environment variables first
 require('dotenv').config();
 console.log("🔍 UPSTASH_REDIS_REST_URL =", process.env.UPSTASH_REDIS_REST_URL);
@@ -84,7 +88,7 @@ async function logToRedisIfNeeded(data) {
 app.get('/ping', (req, res) => res.send("OK"));
 
 // ✅ Meta Webhook Verification
-app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
+app.get('/custom/webhooks/whatsapp/cloudapi', (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'kaapavverify';
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
@@ -100,7 +104,7 @@ app.get('/webhooks/whatsapp/cloudapi', (req, res) => {
 });
 
 // ✅ Meta WhatsApp Webhook Receiver
-app.post('/webhooks/whatsapp/cloudapi', async (req, res) => {
+app.post('/custom/webhooks/whatsapp/cloudapi', async (req, res) => {
   res.sendStatus(200); // Always respond fast
 
   const data = req.body;
